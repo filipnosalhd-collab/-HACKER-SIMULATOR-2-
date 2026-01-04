@@ -1259,8 +1259,22 @@
       function showMenu() {
         document.getElementById("menuScreen").style.display = "flex";
         document.getElementById("gameContainer").style.display = "none";
-        if (g.playerName)
-          document.getElementById("playerName").value = g.playerName;
+        const input = document.getElementById("playerName");
+        if (g.playerName) {
+          input.value = g.playerName;
+        }
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            const n = input.value.trim();
+            if (n) {
+              g.playerName = n;
+              save();
+              hideMenu();
+              prepMission();
+              updateUI();
+            }
+          }
+        });
       }
       function hideMenu() {
         document.getElementById("menuScreen").style.display = "none";
