@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hacker Simulator 2</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap");
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Share Tech Mono", monospace;
+        background: linear-gradient(
+          180deg,
+          #0a0e1a 0%,
+          #0f1a0f 50%,
+          #0a0f1a 100%
+        );
+        color: #00ff00;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        max-height: 100vh;
+        overflow-y: auto;
+      }
+      .header {
+        text-align: center;
+        padding: 30px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 20, 0, 0.9),
+          rgba(0, 40, 20, 0.9)
+        );
+        border: 2px solid #00ff00;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        position: relative;
+      }
+      .rank-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        font-size: 40px;
+        animation: rankGlow 2s ease-in-out infinite;
+      }
+      @keyframes rankGlow {
+        0%,
+        100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 5px currentColor);
+        }
+        50% {
+          transform: scale(1.1);
+          filter: drop-shadow(0 0 15px currentColor);
+        }
+      }
+      .player-id {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 12px;
+        color: #00ffff;
+        opacity: 0.7;
+      }
+      .card-btn {
+        position: absolute;
+        top: 50px;
+        right: 15px;
+        background: linear-gradient(135deg, #00ff00, #00cc00);
+        color: #000;
+        border: 2px solid #00ff00;
+        padding: 10px 20px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+      }
+      .card-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+      }
+      .header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(24px, 5vw, 48px);
+        background: linear-gradient(135deg, #00ff00, #00ffff, #ff00ff, #00ff00);
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientText 3s ease infinite;
+        margin-bottom: 10px;
+      }
+      @keyframes gradientText {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+      .mission-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .info-box {
+        background: rgba(0, 30, 0, 0.9);
+        border: 2px solid #00ff00;
+        padding: 15px;
+        text-align: center;
+        border-radius: 10px;
+      }
+      .info-box h3 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 11px;
+        color: #00ffff;
+        margin-bottom: 8px;
+      }
+      .info-box p {
+        font-size: clamp(18px, 3vw, 24px);
+        font-weight: bold;
+        color: #00ff00;
+      }
+      .timer {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(28px, 5vw, 48px);
+        text-align: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        border: 3px solid #00ff00;
+        color: #00ff00;
+        margin: 20px 0;
+        border-radius: 10px;
+        text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .timer.warning {
+        color: #ffff00;
+        border-color: #ffff00;
+        animation: timerPulse 1s infinite;
+      }
+      .timer.danger {
+        color: #ff0000;
+        border-color: #ff0000;
+        animation: timerPulse 0.5s infinite;
+      }
+      @keyframes timerPulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      .start-mission-btn {
+        width: 100%;
+        padding: 25px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+        background: linear-gradient(135deg, #00ff00, #00cc00);
+        color: #000;
+        border: 3px solid #00ff00;
+        border-radius: 15px;
+        cursor: pointer;
+        margin: 20px 0;
+        transition: all 0.3s;
+        text-transform: uppercase;
+      }
+      .start-mission-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 255, 0, 0.5);
+      }
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .tool-card {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 30, 0, 0.9),
+          rgba(0, 50, 30, 0.9)
+        );
+        border: 3px solid #00ff00;
+        padding: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+      }
+      .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        border-color: #00ffff;
+      }
+      .tool-card.completed {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 50, 0, 0.9),
+          rgba(0, 80, 40, 0.9)
+        );
+        opacity: 0.7;
+      }
+      .tool-card.completed::after {
+        content: "✓";
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 30px;
+        color: #00ff00;
+      }
+      .tool-icon {
+        font-size: 40px;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      .tool-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 10px;
+        color: #00ffff;
+      }
+      .tool-website {
+        font-size: 12px;
+        color: #00ffff;
+        text-align: center;
+        margin-bottom: 5px;
+        opacity: 0.8;
+      }
+      .tool-task {
+        font-size: 13px;
+        text-align: center;
+        color: #00ff00;
+        min-height: 60px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 20, 0, 0.98),
+          rgba(0, 40, 20, 0.98)
+        );
+        border: 4px solid #00ff00;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      .modal-header {
+        font-family: "Orbitron", sans-serif;
+        font-size: 24px;
+        color: #00ffff;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .challenge-area {
+        margin: 20px 0;
+        min-height: 200px;
+      }
+      .challenge-step {
+        background: rgba(0, 50, 0, 0.3);
+        border: 2px solid #00ff00;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+      }
+      .challenge-step h4 {
+        color: #00ffff;
+        margin-bottom: 10px;
+        font-family: "Orbitron", sans-serif;
+      }
+      .btn {
+        padding: 15px 30px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+        border: 2px solid #00ff00;
+        background: linear-gradient(180deg, #1a2a1a, #0a1a0a);
+        color: #00ff00;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        margin: 5px;
+      }
+      .btn:hover {
+        background: linear-gradient(180deg, #00ff00, #00cc00);
+        color: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 255, 0, 0.5);
+      }
+      .btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .input-display {
+        background: rgba(0, 20, 0, 0.9);
+        border: 3px solid #00ff00;
+        padding: 15px;
+        margin: 15px 0;
+        min-height: 50px;
+        font-size: 20px;
+        text-align: center;
+        border-radius: 10px;
+        word-break: break-all;
+      }
+      .keyboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+        gap: 5px;
+        margin: 15px 0;
+      }
+      .key-btn {
+        padding: 12px 5px;
+        font-size: 14px;
+        background: rgba(0, 30, 0, 0.9);
+        border: 2px solid #00aa00;
+        color: #00ff00;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.2s;
+      }
+      .key-btn:hover {
+        background: rgba(0, 50, 0, 0.9);
+        border-color: #00ff00;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+      }
+      .message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 20, 0, 0.98),
+          rgba(0, 40, 20, 0.98)
+        );
+        border: 4px solid #00ff00;
+        padding: 40px 60px;
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(20px, 4vw, 32px);
+        font-weight: bold;
+        z-index: 2000;
+        text-align: center;
+        box-shadow: 0 0 50px rgba(0, 255, 0, 0.6);
+        animation: messagePopIn 0.3s ease-out;
+        border-radius: 15px;
+      }
+      @keyframes messagePopIn {
+        from {
+          transform: translate(-50%, -50%) scale(0);
+        }
+        to {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+      .message.error {
+        border-color: #ff0000;
+        color: #ff0000;
+        background: linear-gradient(
+          135deg,
+          rgba(30, 0, 0, 0.98),
+          rgba(50, 10, 10, 0.98)
+        );
+        box-shadow: 0 0 50px rgba(255, 0, 0, 0.6);
+      }
+      .police-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 0, 0, 0.2);
+        pointer-events: none;
+        z-index: 999;
+        animation: policeLights 0.5s infinite;
+      }
+      @keyframes policeLights {
+        0%,
+        49% {
+          background: rgba(255, 0, 0, 0.3);
+        }
+        50%,
+        100% {
+          background: rgba(0, 0, 255, 0.3);
+        }
+      }
+      .progress-bar {
+        width: 100%;
+        height: 30px;
+        background: #0a0a0a;
+        border: 2px solid #00ff00;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ff00, #00aa00);
+        transition: width 0.5s ease;
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+      }
+      .menu-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 10, 0, 0.98),
+          rgba(0, 30, 20, 0.98)
+        );
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .menu-screen h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: clamp(32px, 8vw, 72px);
+        margin-bottom: 50px;
+        background: linear-gradient(135deg, #00ff00, #00ffff, #ff00ff, #00ff00);
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientText 3s ease infinite;
+      }
+      .menu-input {
+        width: 100%;
+        max-width: 400px;
+        padding: 20px;
+        font-size: 24px;
+        font-family: "Orbitron", sans-serif;
+        background: rgba(0, 20, 0, 0.9);
+        border: 3px solid #00ff00;
+        color: #00ff00;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .menu-btn {
+        padding: 20px 60px;
+        font-size: 24px;
+        font-family: "Orbitron", sans-serif;
+        font-weight: bold;
+        background: linear-gradient(135deg, #00ff00, #00cc00);
+        color: #000;
+        border: 3px solid #00ff00;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        margin: 10px;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px rgba(0, 255, 0, 0.7);
+      }
+      .card-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          #001a00 0%,
+          #003300 50%,
+          #001a00 100%
+        );
+        z-index: 10000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      .card-screen::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+            circle at 20% 50%,
+            rgba(0, 255, 0, 0.05) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 50%,
+            rgba(0, 255, 255, 0.05) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+      .close-card-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff0000, #cc0000);
+        color: #fff;
+        border: 3px solid #ff0000;
+        padding: 15px 30px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s;
+        z-index: 10001;
+      }
+      .close-card-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+      }
+      .player-card {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 40, 0, 0.95),
+          rgba(0, 70, 40, 0.95)
+        );
+        border: 5px solid #00ff00;
+        border-radius: 25px;
+        padding: 50px;
+        max-width: 600px;
+        width: 90%;
+        position: relative;
+        box-shadow: 0 0 50px rgba(0, 255, 0, 0.5),
+          inset 0 0 30px rgba(0, 255, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+      .card-header {
+        text-align: center;
+        margin-bottom: 40px;
+        border-bottom: 3px solid rgba(0, 255, 0, 0.3);
+        padding-bottom: 30px;
+      }
+      .card-rank {
+        font-size: 80px;
+        margin-bottom: 20px;
+        animation: rankGlow 2s ease-in-out infinite;
+      }
+      .card-id {
+        font-family: "Orbitron", sans-serif;
+        font-size: 14px;
+        color: #00ffff;
+        opacity: 0.7;
+        margin-bottom: 10px;
+      }
+      .card-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 42px;
+        color: #00ff00;
+        margin: 20px 0;
+        text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        font-weight: bold;
+      }
+      .card-rank-name {
+        font-family: "Orbitron", sans-serif;
+        font-size: 20px;
+        color: #00ffff;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .card-stats {
+        font-size: 18px;
+        margin: 30px 0;
+      }
+      .card-stat-item {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px 20px;
+        margin: 10px 0;
+        border-left: 4px solid #00ff00;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .card-stat-label {
+        color: #00ffff;
+        font-family: "Orbitron", sans-serif;
+        font-size: 14px;
+      }
+      .card-stat-value {
+        color: #00ff00;
+        font-family: "Orbitron", sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+      }
+      .card-footer {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 3px solid rgba(0, 255, 0, 0.3);
+      }
+      .card-last-update {
+        text-align: center;
+        font-size: 12px;
+        color: rgba(0, 255, 255, 0.6);
+        margin-bottom: 20px;
+        font-family: "Orbitron", sans-serif;
+      }
+      .share-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .share-btn {
+        padding: 15px 25px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 14px;
+        font-weight: bold;
+        border: 2px solid #00ff00;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 50, 0, 0.9),
+          rgba(0, 80, 40, 0.9)
+        );
+        color: #00ff00;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+      }
+      .share-btn:hover {
+        background: linear-gradient(135deg, #00ff00, #00cc00);
+        color: #000;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0, 255, 0, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- MENU STARTOWE -->
+    <div class="menu-screen" id="menuScreen">
+      <h1>🔐 HACKER SIMULATOR 🔐</h1>
+      <input
+        type="text"
+        class="menu-input"
+        id="playerName"
+        placeholder="WPISZ SWOJĄ NAZWĘ"
+        maxlength="20"
+      />
+      <button class="menu-btn" id="startGameBtn">▶ ROZPOCZNIJ GRĘ</button>
+      <button class="menu-btn" id="viewCardBtn">🎴 POKAŻ KARTĘ</button>
+    </div>
+
+    <!-- EKRAN KARTY GRACZA -->
+    <div class="card-screen" id="cardScreen">
+      <button class="close-card-btn" id="closeCardBtn">✗ ZAMKNIJ</button>
+      <div class="player-card">
+        <div class="card-header">
+          <div class="card-rank" id="cardRank">⭐</div>
+          <div class="card-id" id="cardId">ID: xxxxxx</div>
+          <div class="card-name" id="cardName">GRACZ</div>
+          <div class="card-rank-name" id="cardRankName">NOWICJUSZ</div>
+        </div>
+        <div class="card-stats">
+          <div class="card-stat-item">
+            <span class="card-stat-label">🏆 UKOŃCZONE MISJE</span>
+            <span class="card-stat-value" id="cardCompleted">0</span>
+          </div>
+          <div class="card-stat-item">
+            <span class="card-stat-label">🚔 UCIEKŁ OD POLICJI</span>
+            <span class="card-stat-value" id="cardEscaped">0</span>
+          </div>
+          <div class="card-stat-item">
+            <span class="card-stat-label">💀 ZŁAPANY</span>
+            <span class="card-stat-value" id="cardCaught">0</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-last-update" id="cardLastUpdate">
+            Ostatnia aktualizacja: --
+          </div>
+          <div class="share-buttons">
+            <button class="share-btn" id="shareSMS">📱 SMS</button>
+            <button class="share-btn" id="shareEmail">📧 EMAIL</button>
+            <button class="share-btn" id="shareMessenger">💬 MESSENGER</button>
+            <button class="share-btn" id="shareWhatsApp">💚 WHATSAPP</button>
+            <button class="share-btn" id="copyLink">🔗 KOPIUJ LINK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" id="gameContainer" style="display: none">
+      <div class="header">
+        <div class="rank-badge" id="rankBadge">⭐</div>
+        <div class="player-id" id="playerId">ID: xxxxxx</div>
+        <button class="card-btn" id="showCardInGame">🎴 KARTA</button>
+        <h1 id="playerNameDisplay">🔐 HACKER 🔐</h1>
+        <p id="websiteDisplay">Wybierz narzędzie...</p>
+      </div>
+
+      <div class="mission-info">
+        <div class="info-box">
+          <h3>UKOŃCZONE</h3>
+          <p id="completedMissions">0</p>
+        </div>
+        <div class="info-box">
+          <h3>TERAZ</h3>
+          <p id="completedCount">0/8</p>
+        </div>
+        <div class="info-box">
+          <h3>UCIEKŁ</h3>
+          <p id="escaped">0</p>
+        </div>
+        <div class="info-box">
+          <h3>ZŁAPANY</h3>
+          <p id="caught">0</p>
+        </div>
+      </div>
+
+      <button class="start-mission-btn" id="startMissionBtn">
+        ▶ ROZPOCZNIJ MISJĘ
+      </button>
+
+      <div id="missionArea" style="display: none">
+        <div class="timer" id="timer">⏱️ 0:00</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="tools-grid" id="toolsGrid"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="challengeModal">
+      <div class="modal-content">
+        <div class="modal-header" id="modalHeader"></div>
+        <div class="challenge-area" id="challengeArea"></div>
+        <div style="text-align: center">
+          <button class="btn" id="closeBtn">✗ ZAMKNIJ</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      const POLICE_TIME = 120,
+        TOOLS_PER_MISSION = 8;
+      const WEBSITES = [
+        { name: "youtube.com", difficulty: 1, time: 120, steps: 1 },
+        { name: "instagram.com", difficulty: 1, time: 120, steps: 1 },
+        { name: "tiktok.com", difficulty: 1, time: 120, steps: 1 },
+        { name: "twitter.com", difficulty: 2, time: 150, steps: 2 },
+        { name: "reddit.com", difficulty: 2, time: 150, steps: 2 },
+        { name: "linkedin.com", difficulty: 2, time: 150, steps: 2 },
+        { name: "netflix.com", difficulty: 3, time: 180, steps: 2 },
+        { name: "amazon.com", difficulty: 3, time: 180, steps: 2 },
+        { name: "spotify.com", difficulty: 3, time: 180, steps: 2 },
+        { name: "facebook.com", difficulty: 4, time: 210, steps: 3 },
+        { name: "google.com", difficulty: 4, time: 210, steps: 3 },
+        { name: "paypal.com", difficulty: 5, time: 240, steps: 3 },
+        { name: "apple.com", difficulty: 5, time: 240, steps: 3 },
+        { name: "microsoft.com", difficulty: 5, time: 240, steps: 3 },
+      ];
+      const RANKS = [
+        { min: 0, max: 4, name: "NOWICJUSZ", icon: "⭐", color: "#888" },
+        { min: 5, max: 9, name: "SKRYPT KIDDIE", icon: "⭐", color: "#00ff00" },
+        { min: 10, max: 19, name: "HAKER", icon: "⭐", color: "#00ffff" },
+        { min: 20, max: 34, name: "CRACKER", icon: "⭐", color: "#0080ff" },
+        {
+          min: 35,
+          max: 49,
+          name: "ELITE HACKER",
+          icon: "⭐",
+          color: "#ff00ff",
+        },
+        { min: 50, max: 74, name: "BLACK HAT", icon: "⭐", color: "#ff0000" },
+        {
+          min: 75,
+          max: 99,
+          name: "CYBERWARRIOR",
+          icon: "⭐",
+          color: "#ffaa00",
+        },
+        {
+          min: 100,
+          max: 149,
+          name: "MASTERMIND",
+          icon: "⭐",
+          color: "#ff00aa",
+        },
+        { min: 150, max: 999999, name: "LEGEND", icon: "⭐", color: "#gold" },
+      ];
+      const TOOLS = [
+        { id: "virus", name: "VIRUS", icon: "🦠" },
+        { id: "redirect", name: "REDIRECT", icon: "🔀" },
+        { id: "ssl", name: "SSL", icon: "🔐" },
+        { id: "dns", name: "DNS", icon: "🌐" },
+        { id: "scripts", name: "SCRIPTS", icon: "📜" },
+        { id: "headers", name: "HEADERS", icon: "📋" },
+        { id: "cookies", name: "COOKIES", icon: "🍪" },
+        { id: "images", name: "IMAGES", icon: "🖼️" },
+      ];
+      const CHALLENGES = {
+        virus: [
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "inject malware",
+                task: "Wpisz: inject malware",
+              },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Alt", "S"], task: "Alt+S" },
+              {
+                type: "text",
+                answer: "inject malware",
+                task: "Wpisz: inject malware",
+              },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Alt", "S"], task: "Alt+S" },
+              {
+                type: "text",
+                answer: "inject malware",
+                task: "Wpisz: inject malware",
+              },
+              { type: "click", clicks: 10, task: "10x" },
+            ],
+          },
+          { steps: [{ type: "memory", code: "VX92", task: "Zapamiętaj" }] },
+          {
+            steps: [
+              { type: "memory", code: "VX92", task: "Zapamiętaj" },
+              {
+                type: "combo",
+                keys: ["Ctrl", "Shift", "V"],
+                task: "Ctrl+Shift+V",
+              },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "trojan horse",
+                task: "Wpisz: trojan horse",
+              },
+              { type: "click", clicks: 15, task: "15x" },
+            ],
+          },
+        ],
+        redirect: [
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "redirect 301",
+                task: "Wpisz: redirect 301",
+              },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Ctrl", "L"], task: "Ctrl+L" },
+              {
+                type: "text",
+                answer: "redirect 301",
+                task: "Wpisz: redirect 301",
+              },
+            ],
+          },
+          {
+            steps: [
+              { type: "memory", code: "R3D1", task: "Zapamiętaj" },
+              { type: "click", clicks: 12, task: "12x" },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "location.href",
+                task: "Wpisz: location.href",
+              },
+              { type: "combo", keys: ["Alt", "D"], task: "Alt+D" },
+            ],
+          },
+        ],
+        ssl: [
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "openssl x509",
+                task: "Wpisz: openssl x509",
+              },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "openssl x509",
+                task: "Wpisz: openssl x509",
+              },
+              { type: "memory", code: "SSL7", task: "Zapamiętaj" },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Ctrl", "S"], task: "Ctrl+S" },
+              { type: "click", clicks: 8, task: "8x" },
+              { type: "text", answer: "decrypt", task: "Wpisz: decrypt" },
+            ],
+          },
+          {
+            steps: [
+              { type: "memory", code: "C3RT", task: "Zapamiętaj" },
+              { type: "text", answer: "ssl verify", task: "Wpisz: ssl verify" },
+            ],
+          },
+        ],
+        dns: [
+          {
+            steps: [
+              { type: "text", answer: "nslookup", task: "Wpisz: nslookup" },
+            ],
+          },
+          {
+            steps: [
+              { type: "text", answer: "nslookup", task: "Wpisz: nslookup" },
+              {
+                type: "combo",
+                keys: ["Ctrl", "Shift", "D"],
+                task: "Ctrl+Shift+D",
+              },
+            ],
+          },
+          {
+            steps: [
+              { type: "memory", code: "DNS4", task: "Zapamiętaj" },
+              { type: "text", answer: "dig -x", task: "Wpisz: dig -x" },
+              { type: "click", clicks: 11, task: "11x" },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Alt", "N"], task: "Alt+N" },
+              { type: "text", answer: "host", task: "Wpisz: host" },
+            ],
+          },
+        ],
+        scripts: [
+          {
+            steps: [
+              { type: "text", answer: "eval(code)", task: "Wpisz: eval(code)" },
+            ],
+          },
+          {
+            steps: [
+              { type: "text", answer: "eval(code)", task: "Wpisz: eval(code)" },
+              { type: "click", clicks: 18, task: "18x" },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "combo",
+                keys: ["Ctrl", "Shift", "J"],
+                task: "Ctrl+Shift+J",
+              },
+              { type: "memory", code: "JS99", task: "Zapamiętaj" },
+              {
+                type: "text",
+                answer: "document.write",
+                task: "Wpisz: document.write",
+              },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "console.log",
+                task: "Wpisz: console.log",
+              },
+              { type: "combo", keys: ["F12"], task: "F12" },
+            ],
+          },
+        ],
+        headers: [
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "X-Forwarded-For",
+                task: "Wpisz: X-Forwarded-For",
+              },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "X-Forwarded-For",
+                task: "Wpisz: X-Forwarded-For",
+              },
+              { type: "memory", code: "H3AD", task: "Zapamiętaj" },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Ctrl", "H"], task: "Ctrl+H" },
+              { type: "text", answer: "User-Agent", task: "Wpisz: User-Agent" },
+              { type: "click", clicks: 9, task: "9x" },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "Accept-Language",
+                task: "Wpisz: Accept-Language",
+              },
+              { type: "combo", keys: ["Alt", "H"], task: "Alt+H" },
+            ],
+          },
+        ],
+        cookies: [
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "document.cookie",
+                task: "Wpisz: document.cookie",
+              },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "document.cookie",
+                task: "Wpisz: document.cookie",
+              },
+              { type: "click", clicks: 14, task: "14x" },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "combo",
+                keys: ["Ctrl", "Shift", "C"],
+                task: "Ctrl+Shift+C",
+              },
+              { type: "memory", code: "C00K", task: "Zapamiętaj" },
+              {
+                type: "text",
+                answer: "session=123",
+                task: "Wpisz: session=123",
+              },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "cookie steal",
+                task: "Wpisz: cookie steal",
+              },
+              { type: "combo", keys: ["Delete"], task: "Delete" },
+            ],
+          },
+        ],
+        images: [
+          {
+            steps: [
+              { type: "text", answer: "exiftool", task: "Wpisz: exiftool" },
+            ],
+          },
+          {
+            steps: [
+              { type: "text", answer: "exiftool", task: "Wpisz: exiftool" },
+              { type: "memory", code: "IMG8", task: "Zapamiętaj" },
+            ],
+          },
+          {
+            steps: [
+              { type: "combo", keys: ["Ctrl", "I"], task: "Ctrl+I" },
+              { type: "text", answer: "metadata", task: "Wpisz: metadata" },
+              { type: "click", clicks: 13, task: "13x" },
+            ],
+          },
+          {
+            steps: [
+              {
+                type: "text",
+                answer: "imagemagick",
+                task: "Wpisz: imagemagick",
+              },
+              { type: "combo", keys: ["Alt", "I"], task: "Alt+I" },
+            ],
+          },
+        ],
+      };
+      const POLICE = [
+        {
+          steps: [
+            { type: "text", answer: "lock door", task: "Wpisz: lock door" },
+            { type: "combo", keys: ["Ctrl", "L"], task: "Ctrl+L" },
+          ],
+        },
+        {
+          steps: [
+            { type: "memory", code: "H0M3", task: "Zapamiętaj" },
+            { type: "text", answer: "secure", task: "Wpisz: secure" },
+            { type: "click", clicks: 10, task: "10x" },
+          ],
+        },
+        {
+          steps: [
+            { type: "combo", keys: ["Alt", "L"], task: "Alt+L" },
+            {
+              type: "text",
+              answer: "close window",
+              task: "Wpisz: close window",
+            },
+          ],
+        },
+        {
+          steps: [
+            { type: "text", answer: "arm alarm", task: "Wpisz: arm alarm" },
+            { type: "click", clicks: 8, task: "8x" },
+            {
+              type: "combo",
+              keys: ["Ctrl", "Shift", "A"],
+              task: "Ctrl+Shift+A",
+            },
+          ],
+        },
+        {
+          steps: [
+            { type: "memory", code: "SAFE", task: "Zapamiętaj" },
+            { type: "combo", keys: ["Alt", "S"], task: "Alt+S" },
+            {
+              type: "text",
+              answer: "hide evidence",
+              task: "Wpisz: hide evidence",
+            },
+          ],
+        },
+      ];
+      let g = {
+        playerName: "",
+        playerId: "",
+        completedMissions: 0,
+        completedTools: [],
+        currentTool: null,
+        currentChallenge: null,
+        currentStepIndex: 0,
+        userInput: [],
+        timeLeft: 0,
+        timerInterval: null,
+        policeMode: false,
+        pressedKeys: new Set(),
+        currentWebsite: null,
+        missionActive: false,
+        lastUpdate: null,
+        stats: { escaped: 0, caught: 0 },
+      };
+      function generateId() {
+        return Math.random().toString(36).substr(2, 6).toUpperCase();
+      }
+      function getRank(completed) {
+        for (let r of RANKS) {
+          if (completed >= r.min && completed <= r.max) return r;
+        }
+        return RANKS[0];
+      }
+      function updateLastChange() {
+        g.lastUpdate = new Date().toISOString();
+      }
+      function load() {
+        const s = localStorage.getItem("hackFinal");
+        if (s) {
+          const d = JSON.parse(s);
+          g.playerName = d.playerName || "";
+          g.playerId = d.playerId || generateId();
+          g.completedMissions = d.completedMissions || 0;
+          g.lastUpdate = d.lastUpdate || null;
+          g.stats = d.stats || g.stats;
+        } else {
+          g.playerId = generateId();
+          updateLastChange();
+        }
+      }
+      function save() {
+        updateLastChange();
+        localStorage.setItem(
+          "hackFinal",
+          JSON.stringify({
+            playerName: g.playerName,
+            playerId: g.playerId,
+            completedMissions: g.completedMissions,
+            lastUpdate: g.lastUpdate,
+            stats: g.stats,
+          })
+        );
+      }
+      function showMenu() {
+        document.getElementById("menuScreen").style.display = "flex";
+        document.getElementById("gameContainer").style.display = "none";
+        if (g.playerName)
+          document.getElementById("playerName").value = g.playerName;
+      }
+      function hideMenu() {
+        document.getElementById("menuScreen").style.display = "none";
+        document.getElementById("gameContainer").style.display = "block";
+      }
+      function updateRank() {
+        const r = getRank(g.completedMissions);
+        document.getElementById("rankBadge").textContent = r.icon;
+        document.getElementById("rankBadge").style.color = r.color;
+        document.getElementById("playerNameDisplay").textContent =
+          "🔐 HACKER SIMULATOR 2 🔐";
+      }
+      function updateUI() {
+        document.getElementById("completedMissions").textContent =
+          g.completedMissions;
+        document.getElementById(
+          "completedCount"
+        ).textContent = `${g.completedTools.length}/${TOOLS_PER_MISSION}`;
+        document.getElementById("escaped").textContent = g.stats.escaped;
+        document.getElementById("caught").textContent = g.stats.caught;
+        document.getElementById("playerId").textContent = `ID: ${g.playerId}`;
+        const p = (g.completedTools.length / TOOLS_PER_MISSION) * 100;
+        document.getElementById("progressFill").style.width = `${p}%`;
+        updateRank();
+        document.title = "Hacker Simulator 2";
+      }
+      function showCard() {
+        if (!g.playerName) return msg("⚠️ WPISZ NAZWĘ!", "error");
+        const r = getRank(g.completedMissions);
+        document.getElementById("cardRank").textContent = r.icon;
+        document.getElementById("cardRank").style.color = r.color;
+        document.getElementById("cardId").textContent = `ID: ${g.playerId}`;
+        document.getElementById("cardName").textContent = g.playerName;
+        document.getElementById("cardRankName").textContent = r.name;
+        document.getElementById("cardRankName").style.color = r.color;
+        document.getElementById("cardCompleted").textContent =
+          g.completedMissions;
+        document.getElementById("cardEscaped").textContent = g.stats.escaped;
+        document.getElementById("cardCaught").textContent = g.stats.caught;
+        if (g.lastUpdate) {
+          const d = new Date(g.lastUpdate);
+          document.getElementById(
+            "cardLastUpdate"
+          ).textContent = `Ostatnia aktualizacja: ${d.toLocaleDateString(
+            "pl-PL"
+          )} ${d.toLocaleTimeString("pl-PL")}`;
+        } else {
+          document.getElementById("cardLastUpdate").textContent =
+            "Ostatnia aktualizacja: Brak danych";
+        }
+        document.getElementById("cardScreen").style.display = "flex";
+        const link = `${window.location.origin}${window.location.pathname}?card=${g.playerId}`;
+        const text = `${g.playerName} wysłał ci swoją kartę gracza ${link}`;
+        document.getElementById("shareSMS").onclick = () =>
+          window.open(`sms:?body=${encodeURIComponent(text)}`);
+        document.getElementById("shareEmail").onclick = () =>
+          window.open(
+            `mailto:?subject=Karta gracza Hacker Simulator&body=${encodeURIComponent(
+              text
+            )}`
+          );
+        document.getElementById("shareMessenger").onclick = () =>
+          window.open(
+            `fb-messenger://share/?link=${encodeURIComponent(
+              link
+            )}&quote=${encodeURIComponent(text)}`
+          );
+        document.getElementById("shareWhatsApp").onclick = () =>
+          window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        document.getElementById("copyLink").onclick = () => {
+          navigator.clipboard
+            .writeText(link)
+            .then(() => msg("✓ LINK SKOPIOWANY!", "success"))
+            .catch(() => {
+              const ta = document.createElement("textarea");
+              ta.value = link;
+              ta.style.position = "fixed";
+              ta.style.opacity = "0";
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand("copy");
+              document.body.removeChild(ta);
+              msg("✓ LINK SKOPIOWANY!", "success");
+            });
+        };
+      }
+      function prepMission() {
+        g.completedTools = [];
+        g.policeMode = false;
+        const web = WEBSITES[~~(Math.random() * WEBSITES.length)];
+        g.currentWebsite = web;
+        document.getElementById(
+          "websiteDisplay"
+        ).textContent = `🎯 CEL: ${web.name} (⏱️ ${web.time}s, poziom ${web.difficulty})`;
+        document.getElementById("toolsGrid").innerHTML = "";
+        TOOLS.forEach((t) => {
+          const ch = CHALLENGES[t.id];
+          let fil = ch.filter((c) => c.steps.length <= web.steps + 1);
+          if (fil.length === 0) fil = ch;
+          const rc = fil[~~(Math.random() * fil.length)];
+          const c = document.createElement("div");
+          c.className = "tool-card";
+          c.innerHTML = `<div class="tool-icon">${t.icon}</div><div class="tool-name">${t.name}</div><div class="tool-website">🌐 ${web.name}</div><div class="tool-task">${rc.steps.length} kroków</div>`;
+          c.onclick = () => open(t, rc);
+          c.dataset.toolId = t.id;
+          c.dataset.challenge = JSON.stringify(rc);
+          document.getElementById("toolsGrid").appendChild(c);
+        });
+        document.getElementById("missionArea").style.display = "none";
+        g.missionActive = false;
+        updateUI();
+      }
+      function startMission() {
+        if (g.missionActive) return;
+        g.missionActive = true;
+        g.timeLeft = g.currentWebsite.time;
+        document.getElementById("startMissionBtn").style.display = "none";
+        document.getElementById("missionArea").style.display = "block";
+        startTimer();
+        updateUI();
+      }
+      function startTimer() {
+        stopTimer();
+        g.timerInterval = setInterval(() => {
+          g.timeLeft--;
+          const m = ~~(g.timeLeft / 60),
+            s = g.timeLeft % 60,
+            ti = document.getElementById("timer");
+          ti.textContent = `⏱️ ${m}:${s.toString().padStart(2, "0")}`;
+          ti.className =
+            g.timeLeft <= 30
+              ? "timer danger"
+              : g.timeLeft <= 60
+              ? "timer warning"
+              : "timer";
+          if (g.timeLeft <= 0) {
+            stopTimer();
+            police();
+          }
+        }, 1000);
+      }
+      function stopTimer() {
+        if (g.timerInterval) {
+          clearInterval(g.timerInterval);
+          g.timerInterval = null;
+        }
+      }
+      function police() {
+        g.policeMode = true;
+        g.timeLeft = POLICE_TIME;
+        const o = document.getElementById("policeOverlay");
+        if (o) o.remove();
+        const ov = document.createElement("div");
+        ov.id = "policeOverlay";
+        ov.className = "police-overlay";
+        document.body.appendChild(ov);
+        msg("🚨 POLICJA! 2 MIN!", "error");
+        setTimeout(
+          () => openPolice(POLICE[~~(Math.random() * POLICE.length)]),
+          2000
+        );
+        startTimer();
+      }
+      function openPolice(ch) {
+        g.currentChallenge = ch;
+        g.currentStepIndex = 0;
+        g.userInput = [];
+        document.getElementById("modalHeader").textContent =
+          "🚨 ZABEZPIECZ DOM!";
+        document.getElementById("challengeModal").style.display = "flex";
+        renderSteps(ch.steps);
+      }
+      function open(t, ch) {
+        if (g.completedTools.includes(t.id))
+          return msg("✓ UKOŃCZONE!", "success");
+        if (!g.missionActive) return msg("⚠️ ROZPOCZNIJ MISJĘ!", "error");
+        g.currentTool = t;
+        g.currentChallenge = ch;
+        g.currentStepIndex = 0;
+        g.userInput = [];
+        document.getElementById(
+          "modalHeader"
+        ).textContent = `${t.icon} ${t.name}`;
+        document.getElementById("challengeModal").style.display = "flex";
+        renderSteps(ch.steps);
+      }
+      function renderSteps(steps) {
+        const a = document.getElementById("challengeArea");
+        a.innerHTML = "";
+        const cs = steps[g.currentStepIndex];
+        const d = document.createElement("div");
+        d.className = "challenge-step";
+        let h = `<h4>KROK ${g.currentStepIndex + 1}/${steps.length}: ${
+          cs.task
+        }</h4>`;
+        if (cs.type === "text")
+          h += `<div class="input-display" id="inputDisplay"></div><div class="keyboard" id="keyboard"></div><div style="text-align:center;margin-top:15px;"><button class="btn" id="backspaceBtn">⌫</button><button class="btn" id="submitBtn">✓</button><button class="btn" id="clearBtn">✗</button></div>`;
+        else if (cs.type === "memory")
+          h += `<div style="text-align:center;font-size:48px;font-family:Orbitron;color:#0ff;margin:30px 0;letter-spacing:5px;" id="memoryCode">${cs.code}</div><div style="text-align:center;"><button class="btn" id="rememberBtn" style="font-size:20px;padding:20px 40px;">✓ ZAPAMIĘTAŁEM</button></div><div id="memoryInput" style="display:none;"><div class="input-display" id="inputDisplay"></div><div class="keyboard" id="keyboard"></div><div style="text-align:center;margin-top:15px;"><button class="btn" id="backspaceBtn">⌫</button><button class="btn" id="submitBtn">✓</button><button class="btn" id="clearBtn">✗</button></div></div>`;
+        else if (cs.type === "click")
+          h += `<div style="text-align:center;font-size:48px;margin:20px 0;" id="clickCounter">0/${cs.clicks}</div><div style="text-align:center;"><button class="btn" id="clickBtn" style="font-size:24px;padding:25px 50px;">🖱️ KLIKNIJ</button></div>`;
+        else if (cs.type === "combo")
+          h += `<div style="text-align:center;font-size:32px;margin:20px 0;color:#0ff;">Naciśnij: <strong>${cs.keys.join(
+            " + "
+          )}</strong></div><div style="text-align:center;font-size:16px;opacity:0.7;">Czekam...</div>`;
+        d.innerHTML = h;
+        a.appendChild(d);
+        if (cs.type === "text")
+          setTimeout(() => {
+            createKeys();
+            updateInput();
+          }, 100);
+        else if (cs.type === "memory")
+          setTimeout(() => {
+            document.getElementById("rememberBtn").onclick = () => {
+              document.getElementById("memoryCode").style.display = "none";
+              document.getElementById("rememberBtn").style.display = "none";
+              document.getElementById("memoryInput").style.display = "block";
+              createMemKeys();
+              updateInput();
+            };
+          }, 100);
+        else if (cs.type === "click")
+          setTimeout(() => {
+            let c = 0;
+            let done = false;
+            const btn = document.getElementById("clickBtn");
+            btn.onclick = () => {
+              if (done) return;
+              c++;
+              document.getElementById(
+                "clickCounter"
+              ).textContent = `${c}/${cs.clicks}`;
+              if (c >= cs.clicks) {
+                done = true;
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+                setTimeout(() => stepDone(), 300);
+              }
+            };
+          }, 100);
+      }
+      function createKeys() {
+        const k = document.getElementById("keyboard");
+        if (!k) return;
+        k.innerHTML = "";
+        "qwertyuiopasdfghjklzxcvbnm0123456789 .-=()[]"
+          .split("")
+          .forEach((c) => {
+            const b = document.createElement("button");
+            b.className = "key-btn";
+            b.textContent = c === " " ? "␣" : c;
+            b.onclick = () => add(c);
+            k.appendChild(b);
+          });
+        document.getElementById("backspaceBtn").onclick = () => {
+          g.userInput.pop();
+          updateInput();
+        };
+        document.getElementById("clearBtn").onclick = () => {
+          g.userInput = [];
+          updateInput();
+        };
+        document.getElementById("submitBtn").onclick = () => check();
+      }
+      function createMemKeys() {
+        const k = document.getElementById("keyboard");
+        if (!k) return;
+        k.innerHTML = "";
+        "QWERTYUIOPASDFGHJKLZXCVBNM0123456789".split("").forEach((c) => {
+          const b = document.createElement("button");
+          b.className = "key-btn";
+          b.textContent = c;
+          b.onclick = () => add(c);
+          k.appendChild(b);
+        });
+        document.getElementById("backspaceBtn").onclick = () => {
+          g.userInput.pop();
+          updateInput();
+        };
+        document.getElementById("clearBtn").onclick = () => {
+          g.userInput = [];
+          updateInput();
+        };
+        document.getElementById("submitBtn").onclick = () => check();
+      }
+      function add(k) {
+        g.userInput.push(k);
+        updateInput();
+      }
+      function updateInput() {
+        const d = document.getElementById("inputDisplay");
+        if (d) d.textContent = g.userInput.join("");
+      }
+      function check() {
+        const s = g.currentChallenge.steps[g.currentStepIndex],
+          u = g.userInput.join(""),
+          c = s.answer || s.code;
+        if (u === c) stepDone();
+        else {
+          msg("✗ BŁĄD!", "error");
+          if (g.policeMode) police();
+          g.userInput = [];
+          updateInput();
+        }
+      }
+      function stepDone() {
+        g.currentStepIndex++;
+        if (g.currentStepIndex >= g.currentChallenge.steps.length) {
+          if (g.policeMode) escaped();
+          else complete();
+        } else {
+          g.userInput = [];
+          renderSteps(g.currentChallenge.steps);
+        }
+      }
+      function complete() {
+        const id = g.currentTool.id;
+        g.completedTools.push(id);
+        const c = document.querySelector(`[data-tool-id="${id}"]`);
+        if (c) {
+          c.classList.add("completed");
+          c.onclick = null;
+        }
+        msg("✓ ZHAKOWANE!", "success");
+        document.getElementById("challengeModal").style.display = "none";
+        if (g.completedTools.length >= TOOLS_PER_MISSION)
+          setTimeout(() => missionComplete(), 1500);
+        else updateUI();
+      }
+      function missionComplete() {
+        stopTimer();
+        g.completedMissions++;
+        msg(`🎉 MISJA UKOŃCZONA! +1`, "success");
+        save();
+        setTimeout(() => {
+          document.getElementById("startMissionBtn").style.display = "block";
+          prepMission();
+        }, 2000);
+      }
+      function escaped() {
+        stopTimer();
+        const o = document.getElementById("policeOverlay");
+        if (o) o.remove();
+        g.stats.escaped++;
+        g.policeMode = false;
+        msg("✓ UCIEKŁEŚ!", "success");
+        save();
+        document.getElementById("challengeModal").style.display = "none";
+        setTimeout(() => {
+          if (g.completedTools.length >= TOOLS_PER_MISSION) missionComplete();
+          else {
+            document.getElementById("startMissionBtn").style.display = "block";
+            prepMission();
+          }
+        }, 2000);
+      }
+      function caught() {
+        stopTimer();
+        const o = document.getElementById("policeOverlay");
+        if (o) o.remove();
+        g.stats.caught++;
+        g.completedMissions = Math.max(0, g.completedMissions - 5);
+        msg("🚔 ZŁAPANY! -5 MISJI!", "error");
+        save();
+        document.getElementById("challengeModal").style.display = "none";
+        setTimeout(() => {
+          document.getElementById("startMissionBtn").style.display = "block";
+          prepMission();
+        }, 3000);
+      }
+      document.addEventListener("keydown", (e) => {
+        const s = g.currentChallenge?.steps[g.currentStepIndex];
+        if (!s) return;
+        if (s.type === "combo") {
+          g.pressedKeys.add(e.key);
+          if (e.altKey) g.pressedKeys.add("Alt");
+          if (e.ctrlKey) {
+            g.pressedKeys.add("Ctrl");
+            g.pressedKeys.add("Control");
+          }
+          if (e.shiftKey) g.pressedKeys.add("Shift");
+          if (e.key === "F12") g.pressedKeys.add("F12");
+          if (e.key === "Delete") g.pressedKeys.add("Delete");
+          const ok = s.keys.every((k) => {
+            if (k === "Alt") return e.altKey;
+            if (k === "Ctrl" || k === "Control") return e.ctrlKey;
+            if (k === "Shift") return e.shiftKey;
+            return (
+              g.pressedKeys.has(k) ||
+              g.pressedKeys.has(k.toLowerCase()) ||
+              g.pressedKeys.has(k.toUpperCase())
+            );
+          });
+          if (ok) {
+            e.preventDefault();
+            g.pressedKeys.clear();
+            stepDone();
+          }
+        } else if (s.type === "text") {
+          if (e.key === "Backspace") {
+            e.preventDefault();
+            g.userInput.pop();
+            updateInput();
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            check();
+          } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey) {
+            e.preventDefault();
+            g.userInput.push(e.key);
+            updateInput();
+          }
+        } else if (s.type === "memory") {
+          if (e.key === "Backspace") {
+            e.preventDefault();
+            g.userInput.pop();
+            updateInput();
+          } else if (e.key === "Enter") {
+            e.preventDefault();
+            check();
+          } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey) {
+            e.preventDefault();
+            g.userInput.push(e.key.toUpperCase());
+            updateInput();
+          }
+        }
+      });
+      document.addEventListener("keyup", (e) => {
+        g.pressedKeys.delete(e.key);
+        if (!e.altKey) g.pressedKeys.delete("Alt");
+        if (!e.ctrlKey) {
+          g.pressedKeys.delete("Ctrl");
+          g.pressedKeys.delete("Control");
+        }
+        if (!e.shiftKey) g.pressedKeys.delete("Shift");
+      });
+      function msg(t, ty = "success") {
+        const e = document.querySelector(".message");
+        if (e) e.remove();
+        const m = document.createElement("div");
+        m.className = `message ${ty}`;
+        m.textContent = t;
+        document.body.appendChild(m);
+        setTimeout(() => m.remove(), 2000);
+      }
+      document.getElementById("startGameBtn").onclick = () => {
+        const n = document.getElementById("playerName").value.trim();
+        if (!n) return msg("⚠️ WPISZ NAZWĘ!", "error");
+        g.playerName = n;
+        save();
+        hideMenu();
+        prepMission();
+        updateUI();
+      };
+      document.getElementById("viewCardBtn").onclick = () => {
+        const n = document.getElementById("playerName").value.trim();
+        if (!n) return msg("⚠️ WPISZ NAZWĘ NAJPIERW!", "error");
+        if (!g.playerName) {
+          g.playerName = n;
+          save();
+        }
+        showCard();
+      };
+      document.getElementById("showCardInGame").onclick = () => showCard();
+      document.getElementById("closeCardBtn").onclick = () =>
+        (document.getElementById("cardScreen").style.display = "none");
+      document.getElementById("startMissionBtn").onclick = () => startMission();
+      document.getElementById("closeBtn").onclick = () =>
+        (document.getElementById("challengeModal").style.display = "none");
+      window.onload = () => {
+        load();
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("card")) {
+          const id = params.get("card");
+          if (id === g.playerId) {
+            showCard();
+          } else {
+            msg("Karta innego gracza", "success");
+          }
+        }
+        if (g.playerName) {
+          hideMenu();
+          prepMission();
+          updateUI();
+        } else {
+          showMenu();
+        }
+      };
+    </script>
+  </body>
+</html>
