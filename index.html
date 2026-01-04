@@ -335,6 +335,22 @@
         text-align: center;
         border-radius: 10px;
         word-break: break-all;
+        position: relative;
+      }
+      .input-display::after {
+        content: "|";
+        animation: cursorBlink 1s infinite;
+        margin-left: 2px;
+      }
+      @keyframes cursorBlink {
+        0%,
+        49% {
+          opacity: 1;
+        }
+        50%,
+        100% {
+          opacity: 0;
+        }
       }
       .keyboard {
         display: grid;
@@ -1395,6 +1411,20 @@
       function police() {
         g.policeMode = true;
         g.timeLeft = POLICE_TIME;
+        const toolsData = [];
+        document.querySelectorAll(".tool-card").forEach((card) => {
+          toolsData.push({
+            id: card.dataset.toolId,
+            challenge: JSON.parse(card.dataset.challenge || "{}"),
+            html: card.outerHTML,
+          });
+        });
+        g.savedState = {
+          completedTools: [...g.completedTools],
+          timeLeft: g.currentWebsite.time,
+          website: g.currentWebsite,
+          toolsData: toolsData,
+        };
         const o = document.getElementById("policeOverlay");
         if (o) o.remove();
         const ov = document.createElement("div");
@@ -1546,9 +1576,14 @@
         if (u === c) stepDone();
         else {
           msg("✗ BŁĄD!", "error");
-          if (g.policeMode) police();
           g.userInput = [];
           updateInput();
+          if (!g.policeMode) {
+            document.getElementById("challengeModal").style.display = "none";
+            police();
+          } else {
+            police();
+          }
         }
       }
       function stepDone() {
@@ -1595,10 +1630,44 @@
         save();
         document.getElementById("challengeModal").style.display = "none";
         setTimeout(() => {
-          if (g.completedTools.length >= TOOLS_PER_MISSION) missionComplete();
-          else {
-            document.getElementById("startMissionBtn").style.display = "block";
-            prepMission();
+          if (g.savedState) {
+            g.completedTools = [...g.savedState.completedTools];
+            g.currentWebsite = g.savedState.website;
+            g.timeLeft = g.savedState.timeLeft;
+            const grid = document.getElementById("toolsGrid");
+            grid.innerHTML = "";
+            g.savedState.toolsData.forEach((td) => {
+              const temp = document.createElement("div");
+              temp.innerHTML = td.html;
+              const card = temp.firstChild;
+              grid.appendChild(card);
+              const t = TOOLS.find((tool) => tool.id === td.id);
+              const ch = td.challenge;
+              if (!g.completedTools.includes(td.id)) {
+                card.onclick = () => open(t, ch);
+              } else {
+                card.classList.add("completed");
+                card.onclick = null;
+              }
+              card.dataset.toolId = td.id;
+              card.dataset.challenge = JSON.stringify(ch);
+            });
+            g.savedState = null;
+            document.getElementById(
+              "websiteDisplay"
+            ).textContent = `🎯 CEL: ${g.currentWebsite.name} (⏱️ ${g.currentWebsite.time}s, poziom ${g.currentWebsite.difficulty})`;
+            document.getElementById("startMissionBtn").style.display = "none";
+            document.getElementById("missionArea").style.display = "block";
+            g.missionActive = true;
+            startTimer();
+            updateUI();
+          } else {
+            if (g.completedTools.length >= TOOLS_PER_MISSION) missionComplete();
+            else {
+              document.getElementById("startMissionBtn").style.display =
+                "block";
+              prepMission();
+            }
           }
         }, 2000);
       }
